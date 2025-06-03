@@ -1,0 +1,53 @@
+# ---- All project specifications ---- #
+[project]
+name = "simuldemo"
+description = "A server to run simultaneous experiments and demo"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+authors = [
+    { name = "Marco Gaido", email = "mgaido@fbk.eu" },
+    { name = "FBK HLT-MT", email = "mt@fbk.eu" },
+]
+keywords = ["simultaneous", "demo", "websocket", "streaming"]
+dependencies = [
+    "pyyaml",
+    "websockets",
+    "torch",
+    "librosa"
+]
+dynamic = ["version"]
+
+[project.urls]
+GitHub = "https://github.com/hlt-mt/simuldemo"
+Issues = "https://github.com/hlt-mt/simuldemo/issues"
+
+[project.scripts]
+simulstream_server = "simulstream.server.websocket_server:cli_main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest==7.4.0",
+    "flake8",
+]
+
+hf = [
+    "transformers==4.48.1",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "simulstream.__version__"}
+
+
+# ---- Explicit project build information ---- #
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = [""]
+
+[tool.setuptools.package-data]
+webdemo = ["webdemo"]
+configs = ["config"]
+
