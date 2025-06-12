@@ -5,3 +5,4 @@ supported_langs:
   - en
   - it
 lang_tag_template: "<lang:{}>"
+matching_threshold: 0.1

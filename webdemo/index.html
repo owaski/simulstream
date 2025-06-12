@@ -197,6 +197,31 @@
       border-color: #0078D7;
     }
 
+    #transcript-box {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9fc;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      height: 8em;
+      overflow-y: auto;
+      font-family: "Segoe UI", sans-serif;
+      font-size: 1rem;
+      color: #333;
+      line-height: 1.4;
+      transition: all 0.3s ease;
+    }
+
+    #transcript-box h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.1rem;
+      color: #444;
+    }
+
+    #transcript-text {
+      white-space: pre-wrap;
+    }
+
   </style>
 </head>
 <body>
@@ -218,6 +243,10 @@
       <button id="stopBtn" disabled>Stop Recording</button>
     </div>
     <p id="status"><span class="pulse red"></span>Status: Idle</p>
+    <div id="transcript-box">
+      <h3>Output</h3>
+      <div id="transcript-text"></div>
+    </div>
   </div>
 
   <div id="credits" class="footer">
@@ -378,9 +407,16 @@
         };
 
         socket.onmessage = (event) => {
-          const transcription = event.data;
-          console.log("Transcription:", transcription);
-          document.getElementById('status').innerText = `${transcription}`;
+          const transcription = JSON.parse(event.data);
+          const transcriptText = document.getElementById('transcript-text');
+          const charToDelete = transcription.deleted.length;
+          const newTranscriptLen = transcriptText.textContent.length - charToDelete;
+          transcriptText.textContent = transcriptText.textContent.substring(0, newTranscriptLen);
+          transcriptText.textContent += transcription.new;
+
+          // Auto-scroll to bottom
+          const container = document.getElementById('transcript-box');
+          container.scrollTop = container.scrollHeight;
         };
 
         await audioContext.audioWorklet.addModule('processor.js');

@@ -1,5 +1,5 @@
 # Copyright 2025 FBK
-
+from difflib import SequenceMatcher
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -41,6 +41,7 @@ class HFSlidingWindowRetranslator(BaseSpeechProcessor):
     def __init__(self, config: SimpleNamespace):
         super().__init__(config)
         self.window_len = self.config.window_len * 100  # 10 ms for each frame
+        self.matching_threshold = getattr(self.config, "matching_threshold", 0.1)
 
     def _generate(self, speech: torch.Tensor) -> List[str]:
         extra_kwargs = {}
@@ -64,22 +65,63 @@ class HFSlidingWindowRetranslator(BaseSpeechProcessor):
             return_tensors="pt")["input_features"]
         new_speech.to(self.device)
         if self.audio_history is not None:
-            new_speech = torch.concat([self.audio_history, new_speech])
-        new_speech_len = new_speech.shape[0]
+            new_speech = torch.concat([self.audio_history, new_speech], dim=1)
+        new_speech_len = new_speech.shape[1]
         if new_speech_len > self.window_len:
-            new_speech = new_speech[-self.window_len:]
+            new_speech = new_speech[:, -self.window_len:, :]
         self.audio_history = new_speech
         return new_speech
 
     def _build_incremental_outputs(self, generated_tokens: List[str]) -> IncrementalOutput:
-        if self.text_history is None:
+        """
+        Deduplicates the output stream of overlapping windows using the algorithm introduced in
+        `S. Sen, et al. 2025. "Simultaneous Translation for Unsegmented Input:
+        A Sliding Window Approach" <https://arxiv.org/pdf/2210.09754>`_
+
+        This algorithm is based on the longest matching substring between the current and previous
+        window.
+        """
+        new_string = self.processor.tokenizer.convert_tokens_to_string(generated_tokens)
+        if self.text_history is None or len(self.text_history) == 0:
             return IncrementalOutput(
                 new_tokens=generated_tokens,
-                new_string=self.processor.tokenizer.convert_tokens_to_string(generated_tokens),
+                new_string=new_string,
                 deleted_tokens=[],
                 deleted_string=""
             )
-        raise NotImplementedError("todo: dedup")
+        previous_string = self.processor.tokenizer.convert_tokens_to_string(self.text_history)
+        seq_matcher = SequenceMatcher(None, previous_string, new_string)
+        longest_match = seq_matcher.find_longest_match()
+        if longest_match.size >= self.matching_threshold * len(new_string):
+            new_string = new_string[longest_match.b + longest_match.size:]
+            deleted_string = previous_string[longest_match.a + longest_match.size:]
+            if new_string == '':
+                new_tokens = []
+            else:
+                new_tokens = self.get_ending_tokens_for_string(new_string, generated_tokens)
+            if deleted_string == '':
+                deleted_tokens = []
+            else:
+                deleted_tokens = self.get_ending_tokens_for_string(deleted_string, self.text_history)
+        else:
+            deleted_tokens = []
+            deleted_string = ""
+            new_tokens = generated_tokens
+        return IncrementalOutput(
+            new_tokens=new_tokens,
+            new_string=new_string,
+            deleted_tokens=deleted_tokens,
+            deleted_string=deleted_string,
+        )
+
+    def get_ending_tokens_for_string(self, string: str, tokens: List[str]) -> List[str]:
+        i = 1
+        while i < len(tokens):
+            ending_tokens_string = self.processor.tokenizer.convert_tokens_to_string(tokens[-i:])
+            if not string.endswith(ending_tokens_string):
+                return tokens[-i + 1:]
+            i += 1
+        return tokens
 
     def set_language(self, language: str) -> None:
         lang_tag_id = self.processor.tokenizer.convert_tokens_to_ids(
