@@ -37,7 +37,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
     level=logging.INFO,
 )
-LOGGER = logging.getLogger('fbk_fairseq.simultaneous.websocket_server')
+LOGGER = logging.getLogger('simulstream.websocket_server')
 
 
 def connection_handler_factory(
