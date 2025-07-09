@@ -61,7 +61,7 @@ class HFSlidingWindowRetranslator(BaseSpeechProcessor):
         `self.window_len` frames, and returns it after storing it in the audio history.
         """
         if self.audio_history is not None:
-            waveform = np.concat((self.audio_history, waveform))
+            waveform = np.concatenate((self.audio_history, waveform))
         new_speech_len = len(waveform)
         if new_speech_len > self.window_len:
             waveform = waveform[-self.window_len:]
