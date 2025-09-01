@@ -98,14 +98,14 @@ def cli_main():
         "--log-file", type=str, required=True,
         help="Path to the log file with the metrics to be used for the evaluation.")
     parser.add_argument(
-        "--references", nargs="+", type=str, required=True,
+        "--references", nargs="+", type=str,
         help="Path to the textual files containing references. If `--audio-definition` is "
              "specified, this should be a single file containing all the lines of the audios in "
              "the reference, which should be of the same length of the audio definition. "
              "Otherwise, this should be a list of files, where each contains the lines "
              "corresponding to an audio file.")
     parser.add_argument(
-        "--transcripts", nargs="+", type=str, required=True,
+        "--transcripts", nargs="+", type=str,
         help="Path to the textual files containing transcripts. If `--audio-definition` is "
              "specified, this should be a single file containing all the lines of the audios in "
              "the reference, which should be of the same length of the audio definition. "
