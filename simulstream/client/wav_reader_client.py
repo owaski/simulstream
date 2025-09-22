@@ -208,15 +208,17 @@ def cli_main():
         "--chunk-duration-ms",
         default=100,
         type=int,
-        help="Size of the chunks sent to the server in milliseconds (default: 100)")
+        help="Size of the each chunk sent to the server in milliseconds (default: 100)")
     parser.add_argument(
         "--tgt-lang",
         default=None,
-        help="Target language for the wav files.")
+        help="Target language (if needed, its effect depends on the speech processor used by the "
+             "server).")
     parser.add_argument(
         "--src-lang",
         default=None,
-        help="Source language for the wav files.")
+        help="Source language (if needed, its effect depends on the speech processor used by the "
+             "server).")
     asyncio.run(main(parser.parse_args()))
 
 

@@ -142,9 +142,9 @@ def cli_main():
              "corresponding to an audio file.")
     parser.add_argument(
         "--transcripts", nargs="+", type=str,
-        help="Path to the textual files containing transcripts. If `--audio-definition` is "
-             "specified, this should be a single file containing all the lines of the audios in "
-             "the reference, which should be of the same length of the audio definition. "
+        help="Path to the textual files containing reference transcripts. If `--audio-definition` "
+             "is specified, this should be a single file containing all the lines of the audios "
+             "in the reference, which should be of the same length of the audio definition. "
              "Otherwise, this should be a list of files, where each contains the lines "
              "corresponding to an audio file.")
     parser.add_argument(
