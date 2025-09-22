@@ -72,6 +72,10 @@ execute one or more clients. The repository contains the code for two types of c
 interface client that can be used for demos and a python command-line client that can be used
 for evaluation of the speech processor performance.
 
+Below, you can find a simple illustration of the overall architecture with the two scenarios:
+
+<img src="docs/source/_static/architecture.png" alt="Overall simulstream architecture">
+
 ### Server
 
 Run the WebSocket server with YAML configuration files::
