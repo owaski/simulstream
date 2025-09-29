@@ -16,7 +16,6 @@ import argparse
 import logging
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
 import simulstream
 
@@ -49,14 +48,6 @@ class CustomHandler(SimpleHTTPRequestHandler):
             super().do_GET()
 
 
-def webdemo_dir():
-    """
-    :return: The base directory containing the HTML web demo.
-    """
-    script_dir = Path(__file__).parent.absolute()
-    return script_dir.parent.parent / "webdemo"
-
-
 def cli_main():
     """
     Simulstream HTTP server command-line interface (CLI) entry point.
@@ -65,11 +56,14 @@ def cli_main():
 
     Example usage::
 
-        $ python http_server.py --config config/server.yaml
+        $ python http_server.py --config config/server.yaml --directory webdemo
 
     Command-line arguments:
 
-    - ``--config`` (str, optional): Path to the server configuration file.
+    - ``bind`` (str): IP/address on which to serve [default: 127.0.0.1].
+    - ``port`` (int): Port on which to serve [default: 8000].
+    - ``--config`` (str): Path to the server configuration file.
+    - ``--directory`` (str): Path to the server configuration file.
 
     .. note::
         The server currently does not support secure connection through HTTPS
@@ -85,10 +79,14 @@ def cli_main():
     parser.add_argument(
         "--config", "-c", required=True,
         help="Path to configuration file (YAML)")
+    parser.add_argument(
+        "--directory", "-d", default="./webdemo",
+        help="Path to the directory containing the HTML web demo [default: ./webdemo]")
     args = parser.parse_args()
 
-    custom_handler = partial(CustomHandler, config=args.config, directory=webdemo_dir())
+    custom_handler = partial(CustomHandler, config=args.config, directory=args.directory)
     httpd = ThreadingHTTPServer((args.bind, args.port), custom_handler)
+    LOGGER.info(f"Serving directory {args.directory}")
     LOGGER.info(f"Serving on http://{args.bind}:{args.port}")
     httpd.serve_forever()
 

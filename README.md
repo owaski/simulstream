@@ -110,16 +110,18 @@ For a demo, you can create an HTTP web server that servers a web interface inter
 WebSocket server. This can be done by::
 
 ```shell
-simulstream_demo_http_server --config config/server.yaml -p 8001
+simulstream_demo_http_server --config config/server.yaml -p 8001 --directory webdemo
 ```
 
-You can of course replace 8001 with any other port number you prefer. The web interface can then be
-accessed from the local laptop at ``http://localhost:8001/`` or from any other terminal connected
-to the same network using the IP address of your workstation instead of ``localhost``. Be careful
-not to use the same port specified for the WebSocket server if they are running on the same
-machine. If running the HTTP server from a machine different from the one where the WebSocket
-server runs, ensure that the HTTP server can connect to the WebSocket server through the address
-specified in the ``config/server.yaml`` file.
+In case you are not running the command from the root folder of this repository, you should change
+accordingly the ``--directory`` parameter to point to the ``webdemo`` folder containing the HTML
+files of the HTTP demo. You can of course replace ``8001`` with any other port number you prefer.
+The web interface can then be accessed from the local laptop at ``http://localhost:8001/`` or from
+any other terminal connected  to the same network using the IP address of your workstation instead
+of ``localhost``. Be careful not to use the same port specified for the WebSocket server if they
+are running on the same machine. If running the HTTP server from a machine different from the one
+where the WebSocket server runs, ensure that the HTTP server can connect to the WebSocket server
+through the address specified in the ``config/server.yaml`` file.
 
 
 ### Python Client
