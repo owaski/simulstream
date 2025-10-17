@@ -100,8 +100,7 @@ def connection_handler_factory(
                         data = json.loads(message)
                         if 'end_of_stream' in data:
                             incremental_output = message_processor.end_of_stream()
-                            if incremental_output is not None:
-                                await websocket.send(incremental_output.strings_to_json())
+                            await websocket.send(incremental_output.strings_to_json())
                             await websocket.send(json.dumps({'end_of_processing': True}))
                         else:
                             message_processor.process_metadata(data)

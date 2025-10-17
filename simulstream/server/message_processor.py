@@ -21,7 +21,10 @@ import librosa
 import numpy as np
 
 from simulstream.metrics.logger import METRICS_LOGGER
-from simulstream.server.speech_processors import SpeechProcessor, SAMPLE_RATE, IncrementalOutput
+from simulstream.server.speech_processors import SpeechProcessor, SAMPLE_RATE
+from simulstream.server.speech_processors.incremental_output import merge_incremental_outputs, \
+    IncrementalOutput
+
 
 LOGGER = logging.getLogger('simulstream.message_processor')
 
@@ -110,7 +113,7 @@ class MessageProcessor:
             LOGGER.debug(
                 f"Logged client {self.client_id} metrics metadata: {metadata['metrics_metadata']}")
 
-    def end_of_stream(self) -> Optional[IncrementalOutput]:
+    def end_of_stream(self) -> IncrementalOutput:
         """
         Performs the last operations to conclude the processing of the stream of audio by the
         speech processor and cleans up everything to be ready for the next stream.
@@ -118,13 +121,16 @@ class MessageProcessor:
         Returns:
             IncrementalOutput: last output at the end of the stream.
         """
-        output = None
+        outputs = []
         if self.client_buffer:
             # process remaining audio after last chunk
             self.processed_audio_seconds += len(self.client_buffer) / 2 / self.sample_rate
-            output = self._run_speech_processor()
+            outputs.append(self._run_speech_processor())
+
+        outputs.append(self.speech_processor.end_of_stream())
+
         self.clear()
-        return output
+        return merge_incremental_outputs(outputs, self.speech_processor.tokens_to_string)
 
     def clear(self):
         """
