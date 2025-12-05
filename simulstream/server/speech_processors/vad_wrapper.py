@@ -140,6 +140,7 @@ class VADWrapperSpeechProcessor(SpeechProcessor):
                         outputs.append(self.speech_processor.process_chunk(self.speech_buffer))
                     self.in_speech = False
                     self.speech_buffer = None
+                    outputs.append(self.speech_processor.end_of_stream())
                     # reset history at the end of a segment
                     if hasattr(self.speech_processor, 'text_history'):
                         self.speech_processor.text_history = None

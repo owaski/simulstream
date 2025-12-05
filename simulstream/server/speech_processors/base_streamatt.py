@@ -252,7 +252,9 @@ class BaseStreamAtt(BaseSpeechProcessor):
         return incremental_output
 
     def end_of_stream(self) -> IncrementalOutput:
-        return self._build_incremental_outputs(self.unselected_tokens)
+        last_output = self._build_incremental_outputs(self.unselected_tokens)
+        self.unselected_tokens = []
+        return last_output
 
     def clear(self) -> None:
         super().clear()
