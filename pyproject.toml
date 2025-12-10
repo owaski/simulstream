@@ -1,6 +1,6 @@
 # ---- All project specifications ---- #
 [project]
-name = "simuldemo"
+name = "simulstream"
 description = "A server to run simultaneous/streaming experiments and demo"
 readme = "README.md"
 requires-python = ">=3.9"
