@@ -151,6 +151,12 @@ class BaseStreamAtt(BaseSpeechProcessor):
             self._cut_audio_exceeding_maxlen()
             return
 
+        assert len(self.text_history) > 0, \
+            "If text history is empty after selection, audio cannot be aligned. " \
+            "If you see this message, it indicates a bug, so please open an issue at " \
+            "https://github.com/hlt-mt/simulstream/issues and include the steps that " \
+            "led to this state."
+
         # Trim the cross-attention by excluding the discarded new generated tokens and the
         # discarded textual history. Output shape: (text_history_len, n_audio_features)
         cross_attn = cross_attn[discarded_text:discarded_text + len(self.text_history), :]
@@ -299,13 +305,15 @@ class PunctuationTextHistory:
     The current implementation supports only SentencePiece.
     """
 
-    STRONG_PUNCTUATION = [".", "!", "?", ":", ";"]
+    STRONG_PUNCTUATION = [".", "!", "?", ":", ";", "。"]
 
     def __init__(self, config: SimpleNamespace):
         self.config = config
 
     def select_text_history(self, text_history):
         new_history = []
+        seen_punctuation = False
+
         for token in reversed(text_history):
             prefix_token = token
             contains_punctuation = False
@@ -314,7 +322,9 @@ class PunctuationTextHistory:
                     contains_punctuation = True
                     break
             if contains_punctuation:
-                break
+                if seen_punctuation:
+                    break
+            seen_punctuation = True
             new_history.append(token)
         # Reverse the list
         return new_history[::-1]
