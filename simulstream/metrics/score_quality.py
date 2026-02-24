@@ -151,6 +151,8 @@ def cli_main():
     parser.add_argument(
         "--audio-definition", "-a", type=str, default=None,
         help="Path to the yaml file containing the segment-level audio information.")
+    parser.add_argument("--latency-unit", choices=["char", "word"], default="char",
+        help="Whether to computed stats based on words or characters. Default: word.")
     parser.add_argument("--scorer", choices=QUALITY_SCORER_REGISTRY.keys(), required=True)
     args, _ = parser.parse_known_args()
 

@@ -17,10 +17,24 @@ from dataclasses import dataclass
 from typing import List
 
 from mweralign import mweralign
-
+from mweralign.segmenter import CJSegmenter, Segmenter
 from simulstream.metrics.readers import ReferenceSentenceDefinition, OutputWithDelays, text_items
 from simulstream.metrics.scorers.latency import LatencyScorer, LatencyScoringSample, LatencyScores
 
+def tokenize_and_join(text: List[str], segmenter: Segmenter) -> List[str]:
+    """Tokenize text using the segmenter."""
+    if segmenter is not None:
+        for i in range(len(text)):
+            if " ### " in text[i]:
+                pieces = text[i].strip().split(" ### ")
+                text[i] = " ### ".join([" ".join(segmenter.encode(p)) for p in pieces])
+            elif "\t" in text[i]:
+                pieces = text[i].strip().split("\t")
+                # underlying C++ binary still uses ###
+                text[i] = " ### ".join([" ".join(segmenter.encode(p)) for p in pieces])
+            else:
+                text[i] = " ".join(segmenter.encode(text[i].strip()))
+    return "\n".join(text)
 
 @dataclass
 class ResegmentedLatencyScoringSample:
@@ -103,16 +117,25 @@ class MWERSegmenterBasedLatencyScorer(LatencyScorer):
 
     def score(self, samples: List[LatencyScoringSample]) -> LatencyScores:
         resegmented_samples = []
+
+        if self.latency_unit == "char":
+            segmenter = CJSegmenter()
+        else:
+            segmenter = None
+        
         for sample in samples:
             assert sample.reference is not None, "Cannot realign hypothesis to missing reference"
 
-            resegmented_hypos = mweralign.align_texts(
-                "\n".join([sentence_def.content for sentence_def in sample.reference]),
-                sample.hypothesis.final_text).split("\n")
+            hypo = tokenize_and_join([sample.hypothesis.final_text], segmenter)
+            refs = tokenize_and_join([sentence_def.content for sentence_def in sample.reference], segmenter)
+            resegmented_hypos = mweralign.align_texts(refs, hypo).split("\n")
 
             assert len(resegmented_hypos) == len(sample.reference), \
                 f"Reference ({sample.audio_name}) has mismatched number of target " \
                 f"({len(sample.reference)}) and resegmented lines ({len(resegmented_hypos)})"
+                
+            if segmenter is not None:
+                resegmented_hypos = [segmenter.decode(line) for line in resegmented_hypos]
 
             ideal_delays_splits = self._split_delays_by_segmented_text(
                 sample.hypothesis.ideal_delays,
