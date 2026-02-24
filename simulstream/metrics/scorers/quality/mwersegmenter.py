@@ -21,6 +21,7 @@ from mweralign.segmenter import CJSegmenter, Segmenter
 
 from simulstream.metrics.scorers.quality import QualityScorer, QualityScoringSample
 
+
 def tokenize_and_join(text: List[str], segmenter: Segmenter) -> List[str]:
     """Tokenize text using the segmenter."""
     if segmenter is not None:
@@ -35,6 +36,7 @@ def tokenize_and_join(text: List[str], segmenter: Segmenter) -> List[str]:
             else:
                 text[i] = " ".join(segmenter.encode(text[i].strip()))
     return "\n".join(text)
+
 
 @dataclass
 class ResegmentedQualityScoringSample:
@@ -107,11 +109,12 @@ class MWERSegmenterBasedQualityScorer(QualityScorer):
             assert len(resegmented_hypos) == len(sample.reference), \
                 f"Reference ({sample.audio_name}) has mismatched number of target " \
                 f"({len(sample.reference)}) and resegmented lines ({len(resegmented_hypos)})"
-                
+
             if self.args.latency_unit == "char":
                 # segmenter.decode will strip() the spaces, but we need them to align with delays
-                resegmented_hypos = [hypo.replace(" ", "").replace("_", " ") for hypo in resegmented_hypos]
-            
+                resegmented_hypos = [
+                    hypo.replace(" ", "").replace("_", " ") for hypo in resegmented_hypos]
+
             resegmented_samples.append(ResegmentedQualityScoringSample(
                 sample.audio_name,
                 resegmented_hypos,
