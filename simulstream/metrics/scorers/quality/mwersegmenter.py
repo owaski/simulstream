@@ -93,23 +93,24 @@ class MWERSegmenterBasedQualityScorer(QualityScorer):
     def score(self, samples: List[QualityScoringSample]) -> float:
         resegmented_samples = []
 
-        if self.latency_unit == "char":
+        if self.args.latency_unit == "char":
             segmenter = CJSegmenter()
         else:
             segmenter = None
 
         for sample in samples:
             assert sample.reference is not None, "Cannot realign hypothesis to missing reference"
-            hypo = tokenize_and_join([sample.hypothesis.final_text], segmenter)
-            refs = tokenize_and_join([sentence_def.content for sentence_def in sample.reference], segmenter)
+            hypo = tokenize_and_join([sample.hypothesis], segmenter)
+            refs = tokenize_and_join(sample.reference, segmenter)
             resegmented_hypos = mweralign.align_texts(refs, hypo).split("\n")
 
             assert len(resegmented_hypos) == len(sample.reference), \
                 f"Reference ({sample.audio_name}) has mismatched number of target " \
                 f"({len(sample.reference)}) and resegmented lines ({len(resegmented_hypos)})"
                 
-            if segmenter is not None:
-                resegmented_hypos = [segmenter.decode(line) for line in resegmented_hypos]
+            if self.args.latency_unit == "char":
+                # segmenter.decode will strip() the spaces, but we need them to align with delays
+                resegmented_hypos = [hypo.replace(" ", "").replace("_", " ") for hypo in resegmented_hypos]
             
             resegmented_samples.append(ResegmentedQualityScoringSample(
                 sample.audio_name,
