@@ -18,6 +18,7 @@ from typing import List
 
 from mweralign import mweralign
 from mweralign.segmenter import CJSegmenter, Segmenter
+
 from simulstream.metrics.readers import ReferenceSentenceDefinition, OutputWithDelays, text_items
 from simulstream.metrics.scorers.latency import LatencyScorer, LatencyScoringSample, LatencyScores
 
