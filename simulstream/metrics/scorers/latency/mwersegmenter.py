@@ -110,17 +110,20 @@ class MWERSegmenterBasedLatencyScorer(LatencyScorer):
         https://github.com/mjpost/mweralign/blob/d23a5479/mweralign/mweralign.py#L147
         """
         if self.segmenter is not None:
+            tokenized_text = []
             for i in range(len(text)):
                 if " ### " in text[i]:
                     pieces = text[i].strip().split(" ### ")
-                    text[i] = " ### ".join([" ".join(self.segmenter.encode(p)) for p in pieces])
+                    tokenized_text.append(" ### ".join([" ".join(self.segmenter.encode(p)) for p in pieces]))
                 elif "\t" in text[i]:
                     pieces = text[i].strip().split("\t")
                     # underlying C++ binary still uses ###
-                    text[i] = " ### ".join([" ".join(self.segmenter.encode(p)) for p in pieces])
+                    tokenized_text.append(" ### ".join([" ".join(self.segmenter.encode(p)) for p in pieces]))
                 else:
-                    text[i] = " ".join(self.segmenter.encode(text[i].strip()))
-        return "\n".join(text)
+                    tokenized_text.append(" ".join(self.segmenter.encode(text[i].strip())))
+            return "\n".join(tokenized_text)
+        else:
+            return "\n".join(text)
 
     def score(self, samples: List[LatencyScoringSample]) -> LatencyScores:
         resegmented_samples = []
