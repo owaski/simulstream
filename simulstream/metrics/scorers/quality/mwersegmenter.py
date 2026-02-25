@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from mweralign import mweralign
-from mweralign.segmenter import CJSegmenter, Segmenter
+from mweralign.segmenter import CJSegmenter
 
 from simulstream.metrics.scorers.quality import QualityScorer, QualityScoringSample
 
@@ -82,8 +82,11 @@ class MWERSegmenterBasedQualityScorer(QualityScorer):
         ...
 
     def _tokenize(self, text: List[str]) -> List[str]:
-        """Tokenize text using the segmenter."""
-        """This function is borrowed from https://github.com/mjpost/mweralign/blob/d23a5479a4af269fc9244ce36decc1c41c50de73/mweralign/mweralign.py#L147"""
+        """Tokenize text using the segmenter.
+
+        Borrowed from
+        https://github.com/mjpost/mweralign/blob/d23a5479/mweralign/mweralign.py#L147
+        """
         if self.segmenter is not None:
             for i in range(len(text)):
                 if " ### " in text[i]:
