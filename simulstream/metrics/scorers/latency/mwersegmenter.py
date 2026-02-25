@@ -23,23 +23,6 @@ from simulstream.metrics.readers import ReferenceSentenceDefinition, OutputWithD
 from simulstream.metrics.scorers.latency import LatencyScorer, LatencyScoringSample, LatencyScores
 
 
-def tokenize_and_join(text: List[str], segmenter: Segmenter) -> List[str]:
-    """Tokenize text using the segmenter."""
-    """This function is borrowed from https://github.com/mjpost/mweralign/blob/d23a5479a4af269fc9244ce36decc1c41c50de73/mweralign/mweralign.py#L147"""
-    if segmenter is not None:
-        for i in range(len(text)):
-            if " ### " in text[i]:
-                pieces = text[i].strip().split(" ### ")
-                text[i] = " ### ".join([" ".join(segmenter.encode(p)) for p in pieces])
-            elif "\t" in text[i]:
-                pieces = text[i].strip().split("\t")
-                # underlying C++ binary still uses ###
-                text[i] = " ### ".join([" ".join(segmenter.encode(p)) for p in pieces])
-            else:
-                text[i] = " ".join(segmenter.encode(text[i].strip()))
-    return "\n".join(text)
-
-
 @dataclass
 class ResegmentedLatencyScoringSample:
     """
@@ -76,6 +59,7 @@ class MWERSegmenterBasedLatencyScorer(LatencyScorer):
     def __init__(self, args):
         super().__init__(args)
         self.latency_unit = args.latency_unit
+        self.segmenter = CJSegmenter() if args.latency_unit == "char" else None
 
     def requires_reference(self) -> bool:
         return True
@@ -118,21 +102,32 @@ class MWERSegmenterBasedLatencyScorer(LatencyScorer):
         assert len(delays) == index, \
             f"Index {index} should have reached end of delays ({len(delays)})"
         return segmented_delays
+    
+    def _tokenize(self, text: List[str]) -> List[str]:
+        """Tokenize text using the segmenter."""
+        """This function is borrowed from https://github.com/mjpost/mweralign/blob/d23a5479a4af269fc9244ce36decc1c41c50de73/mweralign/mweralign.py#L147"""
+        if self.segmenter is not None:
+            for i in range(len(text)):
+                if " ### " in text[i]:
+                    pieces = text[i].strip().split(" ### ")
+                    text[i] = " ### ".join([" ".join(self.segmenter.encode(p)) for p in pieces])
+                elif "\t" in text[i]:
+                    pieces = text[i].strip().split("\t")
+                    # underlying C++ binary still uses ###
+                    text[i] = " ### ".join([" ".join(self.segmenter.encode(p)) for p in pieces])
+                else:
+                    text[i] = " ".join(self.segmenter.encode(text[i].strip()))
+        return "\n".join(text)
 
     def score(self, samples: List[LatencyScoringSample]) -> LatencyScores:
         resegmented_samples = []
 
-        if self.latency_unit == "char":
-            segmenter = CJSegmenter()
-        else:
-            segmenter = None
-
         for sample in samples:
             assert sample.reference is not None, "Cannot realign hypothesis to missing reference"
 
-            hypo = tokenize_and_join([sample.hypothesis.final_text], segmenter)
-            refs = tokenize_and_join(
-                [sentence_def.content for sentence_def in sample.reference], segmenter)
+            hypo = self._tokenize([sample.hypothesis.final_text])
+            refs = self._tokenize(
+                [sentence_def.content for sentence_def in sample.reference])
             resegmented_hypos = mweralign.align_texts(refs, hypo).split("\n")
 
             assert len(resegmented_hypos) == len(sample.reference), \
