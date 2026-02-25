@@ -124,7 +124,6 @@ class MWERSegmenterBasedLatencyScorer(LatencyScorer):
 
     def score(self, samples: List[LatencyScoringSample]) -> LatencyScores:
         resegmented_samples = []
-
         for sample in samples:
             assert sample.reference is not None, "Cannot realign hypothesis to missing reference"
 

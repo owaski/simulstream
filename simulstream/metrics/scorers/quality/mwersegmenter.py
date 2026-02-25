@@ -102,7 +102,6 @@ class MWERSegmenterBasedQualityScorer(QualityScorer):
 
     def score(self, samples: List[QualityScoringSample]) -> float:
         resegmented_samples = []
-
         for sample in samples:
             assert sample.reference is not None, "Cannot realign hypothesis to missing reference"
             hypo = self._tokenize([sample.hypothesis])
