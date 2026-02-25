@@ -24,6 +24,7 @@ from simulstream.metrics.scorers.quality import QualityScorer, QualityScoringSam
 
 def tokenize_and_join(text: List[str], segmenter: Segmenter) -> List[str]:
     """Tokenize text using the segmenter."""
+    """This function is borrowed from https://github.com/mjpost/mweralign/blob/d23a5479a4af269fc9244ce36decc1c41c50de73/mweralign/mweralign.py#L147"""
     if segmenter is not None:
         for i in range(len(text)):
             if " ### " in text[i]:
