@@ -26,9 +26,9 @@ from simulstream.metrics.scorers.latency import LatencyScores
 
 
 class TokenizeNoInplaceModificationTestCase(unittest.TestCase):
-    """Regression test: _tokenize must not modify the input list in-place.
-
-    See commit ea7b688 ("fix inplace modification of _tokenize").
+    """
+    Ensures that _tokenize does not alter the references.
+    See https://github.com/hlt-mt/simulstream/pull/20#issuecomment-3960951980
     """
 
     def _make_quality_scorer(self, latency_unit="char"):

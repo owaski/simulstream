@@ -104,7 +104,8 @@ class MWERSegmenterBasedLatencyScorer(LatencyScorer):
         return segmented_delays
 
     def _tokenize(self, text: List[str]) -> List[str]:
-        """Tokenize text using the segmenter.
+        """
+        Tokenize text using the segmenter.
 
         Borrowed from
         https://github.com/mjpost/mweralign/blob/d23a5479/mweralign/mweralign.py#L147
