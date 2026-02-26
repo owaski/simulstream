@@ -92,11 +92,13 @@ class MWERSegmenterBasedQualityScorer(QualityScorer):
             for i in range(len(text)):
                 if " ### " in text[i]:
                     pieces = text[i].strip().split(" ### ")
-                    tokenized_text.append(" ### ".join([" ".join(self.segmenter.encode(p)) for p in pieces]))
+                    encoded = [" ".join(self.segmenter.encode(p)) for p in pieces]
+                    tokenized_text.append(" ### ".join(encoded))
                 elif "\t" in text[i]:
                     pieces = text[i].strip().split("\t")
                     # underlying C++ binary still uses ###
-                    tokenized_text.append(" ### ".join([" ".join(self.segmenter.encode(p)) for p in pieces]))
+                    encoded = [" ".join(self.segmenter.encode(p)) for p in pieces]
+                    tokenized_text.append(" ### ".join(encoded))
                 else:
                     tokenized_text.append(" ".join(self.segmenter.encode(text[i].strip())))
             return "\n".join(tokenized_text)
