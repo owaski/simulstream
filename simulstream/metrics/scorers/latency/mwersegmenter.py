@@ -142,7 +142,7 @@ class MWERSegmenterBasedLatencyScorer(LatencyScorer):
                 f"Reference ({sample.audio_name}) has mismatched number of target " \
                 f"({len(sample.reference)}) and resegmented lines ({len(resegmented_hypos)})"
 
-            if self.latency_unit == "char":
+            if self.segmenter is not None:
                 # segmenter.decode will strip() the spaces, but we need them to align with delays
                 resegmented_hypos = [
                     hypo.replace(" ", "").replace("_", " ") for hypo in resegmented_hypos]
